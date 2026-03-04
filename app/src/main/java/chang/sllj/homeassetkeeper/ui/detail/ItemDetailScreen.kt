@@ -1,11 +1,14 @@
 package chang.sllj.homeassetkeeper.ui.detail
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Archive
@@ -48,7 +54,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -63,6 +72,9 @@ import chang.sllj.homeassetkeeper.ui.theme.WarningAmber
 import chang.sllj.homeassetkeeper.ui.util.toCurrencyString
 import chang.sllj.homeassetkeeper.ui.util.toDaysLabel
 import chang.sllj.homeassetkeeper.ui.util.toFormattedDate
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +86,7 @@ fun ItemDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var lightboxImagePath by remember { mutableStateOf<String?>(null) }
     val nowMs = remember { System.currentTimeMillis() }
 
     // Collect one-time events (NavigateBack, ShowMessage)
@@ -102,8 +115,7 @@ fun ItemDetailScreen(
                             Icon(Icons.Filled.Edit, "Edit")
                         }
                         IconButton(onClick = {
-                            if (item.isArchived) viewModel.archiveItem() /* unarchive */
-                            else viewModel.archiveItem()
+                            viewModel.archiveItem()
                         }) {
                             Icon(
                                 if (item.isArchived) Icons.Filled.Unarchive else Icons.Filled.Archive,
@@ -135,16 +147,75 @@ fun ItemDetailScreen(
 
             uiState.item != null -> {
                 val item = uiState.item!!
+                val imagePaths = item.imagePaths.split(",").filter { it.isNotBlank() }
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    contentPadding = PaddingValues(16.dp),
+                        .padding(top = innerPadding.calculateTopPadding()),
+                    contentPadding = PaddingValues(bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // ── Hero Image Carousel ───────────────────────────────────
+                    if (imagePaths.isNotEmpty()) {
+                        item {
+                            val pagerState = rememberPagerState(pageCount = { imagePaths.size })
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(16f / 9f)
+                                    .background(Color.Black)
+                            ) {
+                                HorizontalPager(
+                                    state = pagerState,
+                                    modifier = Modifier.fillMaxSize()
+                                ) { page ->
+                                    val path = imagePaths[page]
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(File(path))
+                                            .build(),
+                                        contentDescription = "Asset image $page",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable { lightboxImagePath = path }
+                                    )
+                                }
+                                
+                                // Simple Pager Indicator
+                                if (imagePaths.size > 1) {
+                                    Row(
+                                        Modifier
+                                            .height(32.dp)
+                                            .fillMaxWidth()
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = 8.dp),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        repeat(imagePaths.size) { iteration ->
+                                            val color = if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.5f)
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(2.dp)
+                                                    .clip(CircleShape)
+                                                    .background(color)
+                                                    .size(8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // ── Details card ──────────────────────────────────────────
                     item {
-                        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text("Details", style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold)
@@ -173,7 +244,11 @@ fun ItemDetailScreen(
                     // ── Specifications ────────────────────────────────────────
                     if (uiState.specifications.isNotEmpty()) {
                         item {
-                            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                            ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text("Specifications",
                                         style = MaterialTheme.typography.titleMedium,
@@ -189,28 +264,44 @@ fun ItemDetailScreen(
 
                     // ── Warranties ────────────────────────────────────────────
                     item {
-                        SectionHeader(
-                            "Warranties",
-                            if (uiState.warranties.isEmpty()) "None recorded" else null
-                        )
+                        Box(Modifier.padding(horizontal = 16.dp)) {
+                            SectionHeader(
+                                "Warranties",
+                                if (uiState.warranties.isEmpty()) "None recorded" else null
+                            )
+                        }
                     }
                     items(uiState.warranties, key = { it.id }) { warranty ->
-                        WarrantyCard(warranty = warranty, nowMs = nowMs)
+                        Box(Modifier.padding(horizontal = 16.dp)) {
+                            WarrantyCard(warranty = warranty, nowMs = nowMs)
+                        }
                     }
 
                     // ── Maintenance logs ──────────────────────────────────────
                     item {
-                        SectionHeader(
-                            "Maintenance",
-                            if (uiState.maintenanceLogs.isEmpty()) "None recorded" else null
-                        )
+                        Box(Modifier.padding(horizontal = 16.dp)) {
+                            SectionHeader(
+                                "Maintenance",
+                                if (uiState.maintenanceLogs.isEmpty()) "None recorded" else null
+                            )
+                        }
                     }
                     items(uiState.maintenanceLogs, key = { it.id }) { log ->
-                        MaintenanceLogCard(log = log)
+                        Box(Modifier.padding(horizontal = 16.dp)) {
+                            MaintenanceLogCard(log = log)
+                        }
                     }
                 }
             }
         }
+    }
+
+    // ── Lightbox Dialog ──────────────────────────────────────────────────────
+    lightboxImagePath?.let { path ->
+        ZoomableImageDialog(
+            imagePath = path,
+            onDismiss = { lightboxImagePath = null }
+        )
     }
 
     // ── Delete confirmation dialog ─────────────────────────────────────────────

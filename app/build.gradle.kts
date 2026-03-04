@@ -99,6 +99,9 @@ dependencies {
 
     // Coil — local file image loading for Compose thumbnails (no network URLs used)
     implementation(libs.coil.compose)
+    
+    // Telephoto — Zoomable images
+    implementation(libs.telephoto.zoomable.image.coil)
 
     // WorkManager — periodic background tasks
     implementation(libs.androidx.work.runtime.ktx)
