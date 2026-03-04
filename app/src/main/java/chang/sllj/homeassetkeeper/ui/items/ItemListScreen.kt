@@ -82,7 +82,13 @@ fun ItemListScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(uiState.items, key = { it.id }) { item ->
-                        ItemCard(item = item, onClick = { onNavigateToDetail(item.id) })
+                        ItemCard(
+                            item = item,
+                            onClick = { onNavigateToDetail(item.id) },
+                            onRestore = if (uiState.showArchived) {
+                                { viewModel.unarchiveItem(item.id) }
+                            } else null
+                        )
                     }
                 }
             }
@@ -91,7 +97,11 @@ fun ItemListScreen(
 }
 
 @Composable
-private fun ItemCard(item: ItemEntity, onClick: () -> Unit) {
+private fun ItemCard(
+    item: ItemEntity,
+    onClick: () -> Unit,
+    onRestore: (() -> Unit)? = null
+) {
     ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -125,12 +135,22 @@ private fun ItemCard(item: ItemEntity, onClick: () -> Unit) {
                     }
                 }
             }
-            item.purchaseDateMs?.let {
-                Text(
-                    it.toFormattedDate(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            if (onRestore != null) {
+                IconButton(onClick = onRestore) {
+                    Icon(
+                        imageVector = Icons.Filled.Unarchive,
+                        contentDescription = stringResource(R.string.unarchive),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else {
+                item.purchaseDateMs?.let {
+                    Text(
+                        it.toFormattedDate(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

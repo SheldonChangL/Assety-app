@@ -79,6 +79,17 @@ class ItemDetailViewModel @Inject constructor(
         }
     }
 
+    fun unarchiveItem() {
+        viewModelScope.launch {
+            runCatching {
+                repository.unarchiveItem(itemId, System.currentTimeMillis())
+                _events.send(ItemDetailEvent.ShowMessage("Item restored from archive."))
+            }.onFailure {
+                _events.send(ItemDetailEvent.ShowMessage("Failed to restore item."))
+            }
+        }
+    }
+
     fun deleteItem() {
         viewModelScope.launch {
             runCatching {

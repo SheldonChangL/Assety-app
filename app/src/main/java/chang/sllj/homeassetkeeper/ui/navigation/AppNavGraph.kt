@@ -104,7 +104,7 @@ fun showBottomBar(route: String?): Boolean = route in listOf(
 )
 
 /** Returns true when the global Add-Asset FAB should be visible. */
-fun showFab(route: String?): Boolean = route == Screen.HOME || route == Screen.ITEMS
+fun showFab(route: String?): Boolean = route == Screen.ITEMS
 
 // ── NavHost ───────────────────────────────────────────────────────────────────
 
@@ -136,8 +136,9 @@ fun AppNavHost(
                         restoreState    = true
                     }
                 },
-                onNavigateToDetail = { itemId -> navController.navigate(Screen.detail(itemId)) },
-                outerPadding       = outerPadding
+                onNavigateToDetail   = { itemId -> navController.navigate(Screen.detail(itemId)) },
+                onNavigateToAddAsset = { navController.navigate(Screen.formNew()) },
+                outerPadding         = outerPadding
             )
         }
 

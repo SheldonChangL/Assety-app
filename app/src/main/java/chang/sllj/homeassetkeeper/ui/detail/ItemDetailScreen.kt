@@ -117,11 +117,15 @@ fun ItemDetailScreen(
                             Icon(Icons.Filled.Edit, stringResource(R.string.edit))
                         }
                         IconButton(onClick = {
-                            viewModel.archiveItem()
+                            if (item.isArchived) {
+                                viewModel.unarchiveItem()
+                            } else {
+                                viewModel.archiveItem()
+                            }
                         }) {
                             Icon(
-                                if (item.isArchived) Icons.Filled.Unarchive else Icons.Filled.Archive,
-                                if (item.isArchived) stringResource(R.string.unarchive) else stringResource(R.string.archive)
+                                imageVector = if (item.isArchived) Icons.Filled.Unarchive else Icons.Filled.Archive,
+                                contentDescription = if (item.isArchived) stringResource(R.string.unarchive) else stringResource(R.string.archive)
                             )
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {

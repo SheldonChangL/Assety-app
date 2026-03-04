@@ -1,5 +1,6 @@
 package chang.sllj.homeassetkeeper.ui.home
 
+import chang.sllj.homeassetkeeper.data.local.entity.ItemEntity
 import chang.sllj.homeassetkeeper.data.local.entity.MaintenanceLogEntity
 import chang.sllj.homeassetkeeper.data.local.entity.WarrantyReceiptEntity
 
@@ -8,7 +9,8 @@ data class HomeUiState(
     val activeItemCount: Int = 0,
     val expiringWarranties: List<WarrantyWithItem> = emptyList(),
     val upcomingMaintenance: List<MaintenanceWithItem> = emptyList(),
-    val categoryBreakdown: List<CategoryCount> = emptyList()
+    val categoryBreakdown: List<CategoryCount> = emptyList(),
+    val recentlyAddedItems: List<ItemEntity> = emptyList()
 )
 
 data class WarrantyWithItem(

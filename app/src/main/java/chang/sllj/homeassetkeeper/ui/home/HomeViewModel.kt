@@ -81,12 +81,17 @@ class HomeViewModel @Inject constructor(
             }
             .sortedByDescending { it.count }
 
+        val recentlyAdded = items
+            .sortedByDescending { it.createdAtMs }
+            .take(5)
+
         HomeUiState(
             isLoading = false,
             activeItemCount = items.size,
             expiringWarranties = expiringWarranties,
             upcomingMaintenance = upcomingMaintenance,
-            categoryBreakdown = categoryBreakdown
+            categoryBreakdown = categoryBreakdown,
+            recentlyAddedItems = recentlyAdded
         )
     }.stateIn(
         scope = viewModelScope,

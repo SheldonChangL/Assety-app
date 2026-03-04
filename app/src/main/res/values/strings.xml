@@ -22,7 +22,8 @@
     <string name="loading">Loading…</string>
 
     <!-- Home Screen -->
-    <string name="home_summary_active_assets">active assets</string>
+    <string name="home_summary_active_assets">Total Assets</string>
+    <string name="home_summary_expiring_soon">Expiring Soon</string>
     <string name="home_summary_expiring">%d expiring</string>
     <string name="home_summary_all_ok">All warranties OK</string>
     <string name="home_section_expiring_warranties">Expiring Warranties</string>
@@ -31,6 +32,12 @@
     <string name="home_empty_title">No assets yet</string>
     <string name="home_empty_subtitle">Tap + to add your first home asset.</string>
     <string name="category_with_count">%1$s  %2$d</string>
+    <string name="home_quick_action_add">Add Asset</string>
+    <string name="home_quick_action_scan">Scan Warranty</string>
+    <string name="home_quick_action_maintenance">Maintenance</string>
+    <string name="home_section_recently_added">Recently Added</string>
+    <string name="home_onboarding_title">Welcome to HomeAssetKeeper</string>
+    <string name="home_onboarding_subtitle">Keep track of your home appliances, electronics, and more in one place. Start by adding your first asset!</string>
 
     <!-- Item List Screen -->
     <string name="item_list_tab_active">Active</string>
