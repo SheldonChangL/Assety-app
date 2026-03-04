@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -34,7 +33,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -65,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -72,6 +71,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import chang.sllj.homeassetkeeper.R
 import chang.sllj.homeassetkeeper.ui.util.toFormattedDate
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -79,17 +79,6 @@ import java.io.File
 
 /**
  * Add / Edit asset form.
- *
- * Required fields: Asset Name, Warranty Expiry Date.
- * All other fields (Category, Location, Brand, Model, Serial, Purchase Date,
- * Price, Notes, Specifications, Photos) are optional enhancements.
- *
- * Photos: up to three images captured via the in-app camera. Each is displayed as
- * a scrollable thumbnail with a remove button. The camera icon is hidden once
- * three photos have been attached.
- *
- * Category and Location are selected from predefined dropdown menus to eliminate
- * typing for these high-frequency fields.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,10 +90,10 @@ fun FormScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var showPurchaseDatePicker    by rememberSaveable { mutableStateOf(false) }
-    var showWarrantyExpiryPicker  by rememberSaveable { mutableStateOf(false) }
-    var categoryExpanded          by remember { mutableStateOf(false) }
-    var locationExpanded          by remember { mutableStateOf(false) }
+    var showPurchaseDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showWarrantyExpiryPicker by rememberSaveable { mutableStateOf(false) }
+    var categoryExpanded by remember { mutableStateOf(false) }
+    var locationExpanded by remember { mutableStateOf(false) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -112,7 +101,6 @@ fun FormScreen(
         if (granted) onNavigateToCamera()
     }
 
-    // Navigate back when save succeeds; the list/home screen updates via Room Flow.
     LaunchedEffect(uiState.savedItemId) {
         if (uiState.savedItemId != null) onNavigateBack()
     }
@@ -124,10 +112,10 @@ fun FormScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (uiState.isEditMode) "Edit Asset" else "Add Asset") },
+                title = { Text(if (uiState.isEditMode) stringResource(R.string.form_title_edit) else stringResource(R.string.form_title_add)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -136,8 +124,8 @@ fun FormScreen(
             if (!uiState.isSaving) {
                 ExtendedFloatingActionButton(
                     onClick = viewModel::save,
-                    icon    = { Icon(Icons.Filled.Save, null) },
-                    text    = { Text("Save") }
+                    icon = { Icon(Icons.Filled.Save, null) },
+                    text = { Text(stringResource(R.string.save)) }
                 )
             }
         },
@@ -145,7 +133,9 @@ fun FormScreen(
     ) { innerPadding ->
 
         if (uiState.isLoading) {
-            Box(Modifier.fillMaxSize().padding(innerPadding), Alignment.Center) {
+            Box(Modifier
+                .fillMaxSize()
+                .padding(innerPadding), Alignment.Center) {
                 CircularProgressIndicator()
             }
             return@Scaffold
@@ -162,56 +152,56 @@ fun FormScreen(
             // ── Photo strip ───────────────────────────────────────────────────
             item {
                 PhotoStrip(
-                    imagePaths     = uiState.imagePaths,
-                    onRemove       = { index -> viewModel.onImageRemoved(index) },
-                    onAddPhoto     = {
+                    imagePaths = uiState.imagePaths,
+                    onRemove = { index -> viewModel.onImageRemoved(index) },
+                    onAddPhoto = {
                         cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
                     }
                 )
             }
 
             // ── Basic Info ────────────────────────────────────────────────────
-            item { SectionLabel("Basic Info") }
+            item { SectionLabel(stringResource(R.string.form_section_basic_info)) }
 
             item {
                 FormTextField(
-                    value         = uiState.name,
+                    value = uiState.name,
                     onValueChange = viewModel::onNameChange,
-                    label         = "Name *",
-                    error         = uiState.nameError,
-                    imeAction     = ImeAction.Next
+                    label = stringResource(R.string.form_label_name_required),
+                    error = uiState.nameError,
+                    imeAction = ImeAction.Next
                 )
             }
 
             // Category dropdown
             item {
                 ExposedDropdownMenuBox(
-                    expanded         = categoryExpanded,
+                    expanded = categoryExpanded,
                     onExpandedChange = { categoryExpanded = it },
-                    modifier         = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedTextField(
-                        value         = uiState.category,
+                        value = uiState.category,
                         onValueChange = {},
-                        readOnly      = true,
-                        label         = { Text("Category") },
-                        placeholder   = { Text("Select a category…") },
-                        trailingIcon  = {
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.form_label_category)) },
+                        placeholder = { Text(stringResource(R.string.form_placeholder_category)) },
+                        trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded)
                         },
-                        colors   = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier
                             .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                             .fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded         = categoryExpanded,
+                        expanded = categoryExpanded,
                         onDismissRequest = { categoryExpanded = false }
                     ) {
                         FormViewModel.CATEGORIES.forEach { cat ->
                             DropdownMenuItem(
-                                text           = { Text(cat) },
-                                onClick        = {
+                                text = { Text(cat) },
+                                onClick = {
                                     viewModel.onCategoryChange(cat)
                                     categoryExpanded = false
                                 },
@@ -224,28 +214,28 @@ fun FormScreen(
 
             item {
                 FormTextField(
-                    value         = uiState.brand,
+                    value = uiState.brand,
                     onValueChange = viewModel::onBrandChange,
-                    label         = "Brand",
-                    imeAction     = ImeAction.Next
+                    label = stringResource(R.string.form_label_brand),
+                    imeAction = ImeAction.Next
                 )
             }
 
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FormTextField(
-                        value         = uiState.modelNumber,
+                        value = uiState.modelNumber,
                         onValueChange = viewModel::onModelNumberChange,
-                        label         = "Model No.",
-                        modifier      = Modifier.weight(1f),
-                        imeAction     = ImeAction.Next
+                        label = stringResource(R.string.form_label_model),
+                        modifier = Modifier.weight(1f),
+                        imeAction = ImeAction.Next
                     )
                     FormTextField(
-                        value         = uiState.serialNumber,
+                        value = uiState.serialNumber,
                         onValueChange = viewModel::onSerialNumberChange,
-                        label         = "Serial No.",
-                        modifier      = Modifier.weight(1f),
-                        imeAction     = ImeAction.Next
+                        label = stringResource(R.string.form_label_serial),
+                        modifier = Modifier.weight(1f),
+                        imeAction = ImeAction.Next
                     )
                 }
             }
@@ -253,32 +243,32 @@ fun FormScreen(
             // Location dropdown
             item {
                 ExposedDropdownMenuBox(
-                    expanded         = locationExpanded,
+                    expanded = locationExpanded,
                     onExpandedChange = { locationExpanded = it },
-                    modifier         = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedTextField(
-                        value         = uiState.location,
+                        value = uiState.location,
                         onValueChange = {},
-                        readOnly      = true,
-                        label         = { Text("Location") },
-                        placeholder   = { Text("Select a location…") },
-                        trailingIcon  = {
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.form_label_location)) },
+                        placeholder = { Text(stringResource(R.string.form_placeholder_location)) },
+                        trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = locationExpanded)
                         },
-                        colors   = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier
                             .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                             .fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded         = locationExpanded,
+                        expanded = locationExpanded,
                         onDismissRequest = { locationExpanded = false }
                     ) {
                         FormViewModel.LOCATIONS.forEach { loc ->
                             DropdownMenuItem(
-                                text           = { Text(loc) },
-                                onClick        = {
+                                text = { Text(loc) },
+                                onClick = {
                                     viewModel.onLocationChange(loc)
                                     locationExpanded = false
                                 },
@@ -290,21 +280,21 @@ fun FormScreen(
             }
 
             // ── Warranty & Purchase ───────────────────────────────────────────
-            item { SectionLabel("Warranty & Purchase") }
+            item { SectionLabel(stringResource(R.string.form_section_warranty_purchase)) }
 
             // Warranty Expiry Date — required
             item {
                 OutlinedTextField(
-                    value         = uiState.warrantyExpiryDateMs?.toFormattedDate() ?: "",
+                    value = uiState.warrantyExpiryDateMs?.toFormattedDate() ?: "",
                     onValueChange = {},
-                    readOnly      = true,
-                    label         = { Text("Warranty Expiry *") },
-                    placeholder   = { Text("Tap to select date") },
-                    isError       = uiState.warrantyExpiryError != null,
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.form_label_warranty_expiry_required)) },
+                    placeholder = { Text(stringResource(R.string.form_placeholder_date)) },
+                    isError = uiState.warrantyExpiryError != null,
                     supportingText = uiState.warrantyExpiryError?.let {
                         { Text(it, color = MaterialTheme.colorScheme.error) }
                     },
-                    trailingIcon  = {
+                    trailingIcon = {
                         IconButton(onClick = { showWarrantyExpiryPicker = true }) {
                             Icon(Icons.Filled.DateRange, null)
                         }
@@ -317,11 +307,11 @@ fun FormScreen(
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        value         = uiState.purchaseDateMs?.toFormattedDate() ?: "",
+                        value = uiState.purchaseDateMs?.toFormattedDate() ?: "",
                         onValueChange = {},
-                        readOnly      = true,
-                        label         = { Text("Purchase Date") },
-                        trailingIcon  = {
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.form_label_purchase_date)) },
+                        trailingIcon = {
                             IconButton(onClick = { showPurchaseDatePicker = true }) {
                                 Icon(Icons.Filled.DateRange, null)
                             }
@@ -329,13 +319,13 @@ fun FormScreen(
                         modifier = Modifier.weight(1f)
                     )
                     FormTextField(
-                        value         = uiState.purchasePriceText,
+                        value = uiState.purchasePriceText,
                         onValueChange = viewModel::onPurchasePriceChange,
-                        label         = "Price ($)",
-                        error         = uiState.priceError,
-                        keyboardType  = KeyboardType.Decimal,
-                        modifier      = Modifier.weight(1f),
-                        imeAction     = ImeAction.Next
+                        label = stringResource(R.string.form_label_price),
+                        error = uiState.priceError,
+                        keyboardType = KeyboardType.Decimal,
+                        modifier = Modifier.weight(1f),
+                        imeAction = ImeAction.Next
                     )
                 }
             }
@@ -343,68 +333,66 @@ fun FormScreen(
             // ── Notes ─────────────────────────────────────────────────────────
             item {
                 FormTextField(
-                    value         = uiState.notes,
+                    value = uiState.notes,
                     onValueChange = viewModel::onNotesChange,
-                    label         = "Notes",
-                    singleLine    = false,
-                    imeAction     = ImeAction.Default
+                    label = stringResource(R.string.form_label_notes),
+                    singleLine = false,
+                    imeAction = ImeAction.Default
                 )
             }
 
             // ── Specifications ────────────────────────────────────────────────
             item {
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SectionLabel("Specifications")
+                    SectionLabel(stringResource(R.string.form_section_specifications))
                     TextButton(onClick = viewModel::addSpecification) {
                         Icon(Icons.Filled.Add, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.size(4.dp))
-                        Text("Add")
+                        Text(stringResource(R.string.add))
                     }
                 }
             }
 
             itemsIndexed(
                 items = uiState.specifications,
-                key   = { _, spec -> spec.id }
+                key = { _, spec -> spec.id }
             ) { _, spec ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment     = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
-                        value         = spec.key,
+                        value = spec.key,
                         onValueChange = { viewModel.updateSpecificationKey(spec.id, it) },
-                        label         = { Text("Key") },
-                        modifier      = Modifier.weight(1f),
-                        singleLine    = true
+                        label = { Text(stringResource(R.string.form_label_spec_key)) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
                     )
                     OutlinedTextField(
-                        value         = spec.value,
+                        value = spec.value,
                         onValueChange = { viewModel.updateSpecificationValue(spec.id, it) },
-                        label         = { Text("Value") },
-                        modifier      = Modifier.weight(1.5f),
-                        singleLine    = true
+                        label = { Text(stringResource(R.string.form_label_spec_value)) },
+                        modifier = Modifier.weight(1.5f),
+                        singleLine = true
                     )
                     IconButton(onClick = { viewModel.removeSpecification(spec.id) }) {
                         Icon(
                             Icons.Filled.Close,
-                            "Remove",
+                            stringResource(R.string.remove),
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
             }
 
-            // Bottom padding for FAB clearance
             item { Spacer(Modifier.height(80.dp)) }
         }
     }
 
-    // ── Warranty expiry date picker ────────────────────────────────────────────
     if (showWarrantyExpiryPicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.warrantyExpiryDateMs
@@ -415,17 +403,16 @@ fun FormScreen(
                 TextButton(onClick = {
                     viewModel.onWarrantyExpiryDateChange(datePickerState.selectedDateMillis)
                     showWarrantyExpiryPicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showWarrantyExpiryPicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showWarrantyExpiryPicker = false }) { Text(stringResource(R.string.cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)
         }
     }
 
-    // ── Purchase date picker ───────────────────────────────────────────────────
     if (showPurchaseDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = uiState.purchaseDateMs
@@ -436,10 +423,10 @@ fun FormScreen(
                 TextButton(onClick = {
                     viewModel.onPurchaseDateChange(datePickerState.selectedDateMillis)
                     showPurchaseDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showPurchaseDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showPurchaseDatePicker = false }) { Text(stringResource(R.string.cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -447,15 +434,6 @@ fun FormScreen(
     }
 }
 
-// ── Photo strip ───────────────────────────────────────────────────────────────
-
-/**
- * Horizontally scrollable strip showing up to three photo thumbnails.
- *
- * Each thumbnail overlays a remove button in the top-right corner.
- * An "Add Photo" tile appears at the end of the strip whenever fewer than
- * three photos have been attached.
- */
 @Composable
 private fun PhotoStrip(
     imagePaths: List<String>,
@@ -463,15 +441,15 @@ private fun PhotoStrip(
     onAddPhoto: () -> Unit
 ) {
     Row(
-        modifier              = Modifier
+        modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment     = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         imagePaths.forEachIndexed { index, path ->
             PhotoThumbnail(
-                path     = path,
+                path = path,
                 onRemove = { onRemove(index) }
             )
         }
@@ -491,12 +469,11 @@ private fun PhotoThumbnail(path: String, onRemove: () -> Unit) {
                 .crossfade(true)
                 .build(),
             contentDescription = null,
-            contentScale       = ContentScale.Crop,
-            modifier           = Modifier
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(12.dp))
         )
-        // Semi-transparent remove button overlaid in the top-right corner
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -508,10 +485,10 @@ private fun PhotoThumbnail(path: String, onRemove: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector        = Icons.Filled.Close,
-                contentDescription = "Remove photo",
-                tint               = Color.White,
-                modifier           = Modifier.size(14.dp)
+                imageVector = Icons.Filled.Close,
+                contentDescription = stringResource(R.string.form_remove_photo),
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
             )
         }
     }
@@ -523,22 +500,22 @@ private fun AddPhotoTile(onClick: () -> Unit) {
     OutlinedCard(
         onClick = onClick,
         modifier = Modifier.size(100.dp),
-        shape    = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Box(
-            modifier         = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
                     Icons.Filled.AddAPhoto,
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.primary,
-                    modifier           = Modifier.size(28.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Add Photo",
+                    stringResource(R.string.form_add_photo),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -547,16 +524,14 @@ private fun AddPhotoTile(onClick: () -> Unit) {
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 @Composable
 private fun SectionLabel(text: String) {
     Text(
-        text       = text,
-        style      = MaterialTheme.typography.titleSmall,
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
-        color      = MaterialTheme.colorScheme.primary,
-        modifier   = Modifier.padding(top = 4.dp)
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 4.dp)
     )
 }
 
@@ -573,18 +548,18 @@ private fun FormTextField(
     imeAction: ImeAction = ImeAction.Next
 ) {
     OutlinedTextField(
-        value         = value,
+        value = value,
         onValueChange = onValueChange,
-        label         = { Text(label) },
-        placeholder   = placeholder?.let { { Text(it) } },
-        isError       = error != null,
+        label = { Text(label) },
+        placeholder = placeholder?.let { { Text(it) } },
+        isError = error != null,
         supportingText = error?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
-        singleLine    = singleLine,
-        maxLines      = if (singleLine) 1 else 5,
+        singleLine = singleLine,
+        maxLines = if (singleLine) 1 else 5,
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Words,
-            keyboardType   = keyboardType,
-            imeAction      = imeAction
+            keyboardType = keyboardType,
+            imeAction = imeAction
         ),
         modifier = modifier
     )

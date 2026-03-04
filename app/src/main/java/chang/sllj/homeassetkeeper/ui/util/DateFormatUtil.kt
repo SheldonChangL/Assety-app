@@ -1,5 +1,7 @@
 package chang.sllj.homeassetkeeper.ui.util
 
+import android.content.Context
+import chang.sllj.homeassetkeeper.R
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -26,9 +28,9 @@ fun Long.toShortDate(): String =
 fun Long.toCurrencyString(): String = "$${this / 100}.%02d".format(this % 100)
 
 /** Returns human-readable countdown: "3 days", "Today", "Expired". */
-fun Long.toDaysLabel(): String = when {
-    this < 0L   -> "Expired"
-    this == 0L  -> "Today"
-    this == 1L  -> "1 day"
-    else        -> "$this days"
+fun Long.toDaysLabel(context: Context): String = when {
+    this < 0L   -> context.getString(R.string.date_expired)
+    this == 0L  -> context.getString(R.string.date_today)
+    this == 1L  -> context.getString(R.string.date_one_day)
+    else        -> context.getString(R.string.date_days, this)
 }

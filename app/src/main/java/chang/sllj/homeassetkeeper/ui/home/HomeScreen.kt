@@ -42,10 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import chang.sllj.homeassetkeeper.R
 import chang.sllj.homeassetkeeper.ui.theme.ErrorRed
 import chang.sllj.homeassetkeeper.ui.theme.SuccessGreen
 import chang.sllj.homeassetkeeper.ui.theme.WarningAmber
@@ -115,7 +117,7 @@ fun HomeScreen(
             if (uiState.expiringWarranties.isNotEmpty()) {
                 item {
                     SectionHeader(
-                        title = "Expiring Warranties",
+                        title = stringResource(R.string.home_section_expiring_warranties),
                         count = uiState.expiringWarranties.size
                     )
                 }
@@ -138,7 +140,7 @@ fun HomeScreen(
             if (uiState.upcomingMaintenance.isNotEmpty()) {
                 item {
                     SectionHeader(
-                        title = "Upcoming Maintenance",
+                        title = stringResource(R.string.home_section_upcoming_maintenance),
                         count = uiState.upcomingMaintenance.size
                     )
                 }
@@ -153,7 +155,7 @@ fun HomeScreen(
             // ── Category overview ──────────────────────────────────────────────
             if (uiState.categoryBreakdown.isNotEmpty()) {
                 item {
-                    SectionHeader(title = "By Category", count = null)
+                    SectionHeader(title = stringResource(R.string.home_section_by_category), count = null)
                 }
                 item {
                     CategoryBreakdownRow(categories = uiState.categoryBreakdown)
@@ -199,7 +201,7 @@ private fun SummaryCard(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "active assets",
+                    text = stringResource(R.string.home_summary_active_assets),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -212,7 +214,7 @@ private fun SummaryCard(
                         tint = WarningAmber
                     )
                     Text(
-                        text = "$expiringCount expiring",
+                        text = stringResource(R.string.home_summary_expiring, expiringCount),
                         style = MaterialTheme.typography.labelSmall,
                         color = WarningAmber
                     )
@@ -220,7 +222,7 @@ private fun SummaryCard(
             } else {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "All warranties OK",
+                    contentDescription = stringResource(R.string.home_summary_all_ok),
                     tint = SuccessGreen
                 )
             }
@@ -280,7 +282,7 @@ private fun WarrantyExpiryCard(item: WarrantyWithItem, onClick: () -> Unit) {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = item.daysUntilExpiry.toDaysLabel(),
+                text = item.daysUntilExpiry.toDaysLabel(androidx.compose.ui.platform.LocalContext.current),
                 style = MaterialTheme.typography.labelLarge,
                 color = daysColor,
                 fontWeight = FontWeight.Bold
@@ -344,7 +346,7 @@ private fun CategoryBreakdownRow(categories: List<CategoryCount>) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.Category, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("${cat.category}  ${cat.count}")
+                        Text(stringResource(R.string.category_with_count, cat.category, cat.count))
                     }
                 }
             )
@@ -369,13 +371,13 @@ private fun EmptyDashboard() {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "No assets yet",
+            text = stringResource(R.string.home_empty_title),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Tap + to add your first home asset.",
+            text = stringResource(R.string.home_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

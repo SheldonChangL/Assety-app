@@ -1,5 +1,6 @@
 package chang.sllj.homeassetkeeper.ui.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -22,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import chang.sllj.homeassetkeeper.R
 import chang.sllj.homeassetkeeper.ui.camera.CameraScreen
 import chang.sllj.homeassetkeeper.ui.detail.ItemDetailScreen
 import chang.sllj.homeassetkeeper.ui.detail.NAV_ARG_ITEM_ID
@@ -51,14 +54,14 @@ object Screen {
 
 data class BottomNavItem(
     val route: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Screen.HOME,     "Home",     Icons.Filled.Home),
-    BottomNavItem(Screen.ITEMS,    "Assets",   Icons.AutoMirrored.Filled.List),
-    BottomNavItem(Screen.SETTINGS, "Settings", Icons.Filled.Settings)
+    BottomNavItem(Screen.HOME,     R.string.nav_home,     Icons.Filled.Home),
+    BottomNavItem(Screen.ITEMS,    R.string.nav_assets,   Icons.AutoMirrored.Filled.List),
+    BottomNavItem(Screen.SETTINGS, R.string.nav_settings, Icons.Filled.Settings)
 )
 
 /**
@@ -76,6 +79,7 @@ fun AppBottomNavBar(navController: NavController) {
 
     NavigationBar {
         bottomNavItems.forEach { item ->
+            val label = stringResource(item.labelRes)
             NavigationBarItem(
                 selected = currentRoute == item.route,
                 onClick = {
@@ -87,8 +91,8 @@ fun AppBottomNavBar(navController: NavController) {
                         restoreState    = true
                     }
                 },
-                icon  = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) }
+                icon  = { Icon(item.icon, contentDescription = label) },
+                label = { Text(label) }
             )
         }
     }

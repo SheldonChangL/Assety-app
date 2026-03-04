@@ -58,10 +58,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import chang.sllj.homeassetkeeper.R
 import chang.sllj.homeassetkeeper.data.local.entity.MaintenanceLogEntity
 import chang.sllj.homeassetkeeper.data.local.entity.WarrantyReceiptEntity
 import chang.sllj.homeassetkeeper.data.local.entity.WarrantyType
@@ -103,27 +105,27 @@ fun ItemDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.item?.name ?: "Detail") },
+                title = { Text(uiState.item?.name ?: stringResource(R.string.detail_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 actions = {
                     uiState.item?.let { item ->
                         IconButton(onClick = { onNavigateToEdit(item.id) }) {
-                            Icon(Icons.Filled.Edit, "Edit")
+                            Icon(Icons.Filled.Edit, stringResource(R.string.edit))
                         }
                         IconButton(onClick = {
                             viewModel.archiveItem()
                         }) {
                             Icon(
                                 if (item.isArchived) Icons.Filled.Unarchive else Icons.Filled.Archive,
-                                if (item.isArchived) "Unarchive" else "Archive"
+                                if (item.isArchived) stringResource(R.string.unarchive) else stringResource(R.string.archive)
                             )
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Filled.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                            Icon(Icons.Filled.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
@@ -175,7 +177,7 @@ fun ItemDetailScreen(
                                         model = ImageRequest.Builder(LocalContext.current)
                                             .data(File(path))
                                             .build(),
-                                        contentDescription = "Asset image $page",
+                                        contentDescription = stringResource(R.string.detail_asset_image_desc, page),
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
@@ -217,23 +219,23 @@ fun ItemDetailScreen(
                                 .padding(horizontal = 16.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Details", style = MaterialTheme.typography.titleMedium,
+                                Text(stringResource(R.string.detail_section_details), style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold)
                                 Spacer(Modifier.height(12.dp))
-                                DetailRow("Category", item.category)
-                                if (item.brand.isNotBlank())        DetailRow("Brand", item.brand)
-                                if (item.modelNumber.isNotBlank())  DetailRow("Model", item.modelNumber)
-                                if (item.serialNumber.isNotBlank()) DetailRow("Serial", item.serialNumber)
-                                if (item.location.isNotBlank())     DetailRow("Location", item.location)
-                                item.purchaseDateMs?.let { DetailRow("Purchased", it.toFormattedDate()) }
+                                DetailRow(stringResource(R.string.detail_label_category), item.category)
+                                if (item.brand.isNotBlank())        DetailRow(stringResource(R.string.detail_label_brand), item.brand)
+                                if (item.modelNumber.isNotBlank())  DetailRow(stringResource(R.string.detail_label_model), item.modelNumber)
+                                if (item.serialNumber.isNotBlank()) DetailRow(stringResource(R.string.detail_label_serial), item.serialNumber)
+                                if (item.location.isNotBlank())     DetailRow(stringResource(R.string.detail_label_location), item.location)
+                                item.purchaseDateMs?.let { DetailRow(stringResource(R.string.detail_label_purchased), it.toFormattedDate()) }
                                 item.purchasePriceCents?.let {
-                                    DetailRow("Price", it.toCurrencyString())
+                                    DetailRow(stringResource(R.string.detail_label_price), it.toCurrencyString())
                                 }
                                 if (item.notes.isNotBlank()) {
                                     Spacer(Modifier.height(8.dp))
                                     HorizontalDivider()
                                     Spacer(Modifier.height(8.dp))
-                                    Text("Notes", style = MaterialTheme.typography.labelMedium,
+                                    Text(stringResource(R.string.detail_label_notes), style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text(item.notes, style = MaterialTheme.typography.bodyMedium)
                                 }
@@ -250,7 +252,7 @@ fun ItemDetailScreen(
                                     .padding(horizontal = 16.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Specifications",
+                                    Text(stringResource(R.string.detail_section_specifications),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold)
                                     Spacer(Modifier.height(12.dp))
@@ -266,8 +268,8 @@ fun ItemDetailScreen(
                     item {
                         Box(Modifier.padding(horizontal = 16.dp)) {
                             SectionHeader(
-                                "Warranties",
-                                if (uiState.warranties.isEmpty()) "None recorded" else null
+                                stringResource(R.string.detail_section_warranties),
+                                if (uiState.warranties.isEmpty()) stringResource(R.string.detail_empty_recorded) else null
                             )
                         }
                     }
@@ -281,8 +283,8 @@ fun ItemDetailScreen(
                     item {
                         Box(Modifier.padding(horizontal = 16.dp)) {
                             SectionHeader(
-                                "Maintenance",
-                                if (uiState.maintenanceLogs.isEmpty()) "None recorded" else null
+                                stringResource(R.string.detail_section_maintenance),
+                                if (uiState.maintenanceLogs.isEmpty()) stringResource(R.string.detail_empty_recorded) else null
                             )
                         }
                     }
@@ -308,18 +310,18 @@ fun ItemDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Asset") },
-            text  = { Text("This will permanently delete the asset and all associated records. This cannot be undone.") },
+            title = { Text(stringResource(R.string.detail_delete_title)) },
+            text  = { Text(stringResource(R.string.detail_delete_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
                         showDeleteDialog = false
                         viewModel.deleteItem()
                     }
-                ) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                ) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -369,9 +371,9 @@ private fun WarrantyCard(warranty: WarrantyReceiptEntity, nowMs: Long) {
         else           -> SuccessGreen
     }
     val typeName = when (warranty.warrantyType) {
-        WarrantyType.MANUFACTURER    -> "Manufacturer"
-        WarrantyType.EXTENDED        -> "Extended"
-        WarrantyType.STORE_PROTECTION -> "Store Protection"
+        WarrantyType.MANUFACTURER    -> stringResource(R.string.warranty_type_manufacturer)
+        WarrantyType.EXTENDED        -> stringResource(R.string.warranty_type_extended)
+        WarrantyType.STORE_PROTECTION -> stringResource(R.string.warranty_type_store_protection)
     }
 
     Card(
@@ -391,7 +393,7 @@ private fun WarrantyCard(warranty: WarrantyReceiptEntity, nowMs: Long) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(
-                    "Expires ${warranty.expiryDateMs.toFormattedDate()}",
+                    stringResource(R.string.detail_warranty_expires, warranty.expiryDateMs.toFormattedDate()),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -403,7 +405,7 @@ private fun WarrantyCard(warranty: WarrantyReceiptEntity, nowMs: Long) {
                     tint = statusColor
                 )
                 Text(
-                    text = daysLeft.toDaysLabel(),
+                    text = daysLeft.toDaysLabel(context = LocalContext.current),
                     style = MaterialTheme.typography.labelMedium,
                     color = statusColor,
                     fontWeight = FontWeight.Bold
@@ -435,23 +437,23 @@ private fun MaintenanceLogCard(log: MaintenanceLogEntity) {
                 Text(log.description, style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold)
                 log.scheduledDateMs?.let {
-                    Text("Scheduled: ${it.toFormattedDate()}",
+                    Text(stringResource(R.string.detail_maintenance_scheduled, it.toFormattedDate()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 log.completedDateMs?.let {
-                    Text("Completed: ${it.toFormattedDate()}",
+                    Text(stringResource(R.string.detail_maintenance_completed, it.toFormattedDate()),
                         style = MaterialTheme.typography.bodySmall,
                         color = SuccessGreen)
                 }
                 log.costCents?.let {
-                    Text("Cost: ${it.toCurrencyString()}",
+                    Text(stringResource(R.string.detail_maintenance_cost, it.toCurrencyString()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             if (isPending) {
-                Text("Pending", style = MaterialTheme.typography.labelSmall, color = WarningAmber)
+                Text(stringResource(R.string.detail_maintenance_pending), style = MaterialTheme.typography.labelSmall, color = WarningAmber)
             }
         }
     }

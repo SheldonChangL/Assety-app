@@ -14,9 +14,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import chang.sllj.homeassetkeeper.R
 import me.saket.telephoto.zoomable.coil.ZoomableAsyncImage
 import java.io.File
 
@@ -43,7 +45,7 @@ fun ZoomableImageDialog(
         ) {
             ZoomableAsyncImage(
                 model = File(imagePath),
-                contentDescription = "Zoomable image",
+                contentDescription = null,
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -57,7 +59,7 @@ fun ZoomableImageDialog(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.close),
                     tint = Color.White
                 )
             }

@@ -32,20 +32,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import chang.sllj.homeassetkeeper.R
 import chang.sllj.homeassetkeeper.camera.CameraEvent
 import chang.sllj.homeassetkeeper.camera.CameraViewModel
 
 /**
  * Full-screen camera viewfinder.
- *
- * After a successful capture the [onImageCaptured] callback fires with the absolute
- * path of the saved JPEG. The calling composable (via NavGraph) stores this path in
- * the form's [androidx.navigation.NavBackStackEntry.savedStateHandle] and pops back.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,10 +70,10 @@ fun CameraScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Capture Photo") },
+                title = { Text(stringResource(R.string.camera_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -120,7 +118,7 @@ fun CameraScreen(
                         CircularProgressIndicator(color = Color.White)
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            text  = "Saving…",
+                            text  = stringResource(R.string.saving),
                             color = Color.White,
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -139,7 +137,7 @@ fun CameraScreen(
                 ) {
                     Icon(
                         Icons.Filled.Camera,
-                        contentDescription = "Capture",
+                        contentDescription = stringResource(R.string.camera_capture_desc),
                         modifier           = Modifier.size(32.dp)
                     )
                 }

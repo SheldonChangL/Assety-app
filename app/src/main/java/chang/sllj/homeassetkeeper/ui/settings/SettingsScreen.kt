@@ -38,10 +38,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import chang.sllj.homeassetkeeper.R
 import chang.sllj.homeassetkeeper.backup.BackupEvent
 import chang.sllj.homeassetkeeper.backup.BackupViewModel
 import chang.sllj.homeassetkeeper.ui.util.toFormattedDate
@@ -53,6 +55,9 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val exportSuccessMsg = stringResource(R.string.settings_export_success)
+    val importSuccessMsg = stringResource(R.string.settings_import_success)
 
     // SAF launcher — create document (export)
     val exportLauncher = rememberLauncherForActivityResult(
@@ -75,10 +80,10 @@ fun SettingsScreen(
                     importLauncher.launch(arrayOf("application/zip"))
                 }
                 BackupEvent.ExportSuccess -> {
-                    snackbarHostState.showSnackbar("Backup exported successfully.")
+                    snackbarHostState.showSnackbar(exportSuccessMsg)
                 }
                 BackupEvent.ImportSuccess -> {
-                    snackbarHostState.showSnackbar("Backup restored successfully.")
+                    snackbarHostState.showSnackbar(importSuccessMsg)
                 }
             }
         }
@@ -116,7 +121,7 @@ fun SettingsScreen(
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Backup & Restore",
+                            stringResource(R.string.settings_backup_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -124,8 +129,7 @@ fun SettingsScreen(
 
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Exports a ZIP archive containing all assets, specifications, " +
-                            "warranties, maintenance logs, and receipt images.",
+                        stringResource(R.string.settings_backup_description),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -133,7 +137,7 @@ fun SettingsScreen(
                     uiState.lastExportTimestampMs?.let { ts ->
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Last export: ${ts.toFormattedDate()}",
+                            stringResource(R.string.settings_last_export, ts.toFormattedDate()),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -156,11 +160,11 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text("Exporting…")
+                            Text(stringResource(R.string.settings_exporting))
                         } else {
                             Icon(Icons.Filled.CloudUpload, null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Export Backup (ZIP)")
+                            Text(stringResource(R.string.settings_export_button))
                         }
                     }
 
@@ -181,18 +185,18 @@ fun SettingsScreen(
                                 strokeWidth = 2.dp
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text("Restoring…")
+                            Text(stringResource(R.string.settings_restoring))
                         } else {
                             Icon(Icons.Filled.Restore, null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Restore from Backup")
+                            Text(stringResource(R.string.settings_restore_button))
                         }
                     }
 
                     uiState.lastImportedBackupTimestampMs?.let { ts ->
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Last restore: ${ts.toFormattedDate()}",
+                            stringResource(R.string.settings_last_restore, ts.toFormattedDate()),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -212,17 +216,14 @@ fun SettingsScreen(
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Privacy",
+                            stringResource(R.string.settings_privacy_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "This app is 100% offline. No data ever leaves your device. " +
-                            "The database is encrypted with AES-256 using a key stored in " +
-                            "the Android Keystore. No analytics, crash reporting, or " +
-                            "telemetry of any kind.",
+                        stringResource(R.string.settings_privacy_description),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
