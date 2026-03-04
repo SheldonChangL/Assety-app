@@ -35,8 +35,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -73,15 +71,6 @@ fun HomeScreen(
     val layoutDirection = LocalLayoutDirection.current
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Home Asset Keeper") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            )
-        },
         // FAB is intentionally absent here — it lives in MainActivity's root Scaffold
         // and is wired to navigate to the Add Asset form from any bottom-nav tab.
         snackbarHost = { SnackbarHost(snackbarHostState) }

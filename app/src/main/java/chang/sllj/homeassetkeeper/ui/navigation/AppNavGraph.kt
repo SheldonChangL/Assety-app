@@ -123,7 +123,15 @@ fun AppNavHost(
         // ── Dashboard ─────────────────────────────────────────────────────────
         composable(Screen.HOME) {
             HomeScreen(
-                onNavigateToItems  = { navController.navigate(Screen.ITEMS) },
+                onNavigateToItems  = {
+                    navController.navigate(Screen.ITEMS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState    = true
+                    }
+                },
                 onNavigateToDetail = { itemId -> navController.navigate(Screen.detail(itemId)) },
                 outerPadding       = outerPadding
             )
