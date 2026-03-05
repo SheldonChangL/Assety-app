@@ -1,0 +1,189 @@
+<resources>
+    <string name="app_name">Assety</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_assets">资产</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- General -->
+    <string name="back">返回</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="close">关闭</string>
+    <string name="ok">确定</string>
+    <string name="edit">编辑</string>
+    <string name="delete">删除</string>
+    <string name="archive">归档</string>
+    <string name="unarchive">取消归档</string>
+    <string name="remove">移除</string>
+    <string name="add">新增</string>
+    <string name="saving">正在保存…</string>
+    <string name="loading">正在加载…</string>
+
+    <!-- Home Screen -->
+    <string name="home_summary_active_assets">资产总数</string>
+    <string name="home_summary_expiring_soon">即将到期</string>
+    <string name="home_summary_expiring">%d 个即将到期</string>
+    <string name="home_summary_all_ok">所有保修均正常</string>
+    <string name="home_section_expiring_warranties">即将到期的保修</string>
+    <string name="home_section_upcoming_maintenance">即将进行的保养</string>
+    <string name="home_section_by_category">按类别浏览</string>
+    <string name="home_empty_title">尚无资产</string>
+    <string name="home_empty_subtitle">点击 + 新增您的第一个居家资产。</string>
+    <string name="category_with_count">%1$s  %2$d</string>
+    <string name="home_quick_action_add">新增资产</string>
+    <string name="home_quick_action_scan">扫描保修</string>
+    <string name="home_quick_action_maintenance">保养维护</string>
+    <string name="home_section_recently_added">最近新增</string>
+    <string name="home_onboarding_title">欢迎使用 Assety</string>
+    <string name="home_onboarding_subtitle">集中管理您的家电、电子产品等。从新增第一个资产开始吧！</string>
+
+    <!-- Item List Screen -->
+    <string name="item_list_tab_active">使用中</string>
+    <string name="item_list_tab_archived">已归档</string>
+    <string name="item_list_search_placeholder">搜索…</string>
+    <string name="item_list_empty_no_matches">找不到匹配项</string>
+    <string name="item_list_empty_no_assets">尚无资产</string>
+    <string name="item_brand_category_separator">· %s</string>
+
+    <!-- Item Detail Screen -->
+    <string name="detail_title">详情</string>
+    <string name="detail_section_details">详细信息</string>
+    <string name="detail_section_specifications">规格</string>
+    <string name="detail_section_warranties">保修信息</string>
+    <string name="detail_section_maintenance">保养记录</string>
+    <string name="detail_empty_recorded">暂无记录</string>
+    <string name="detail_delete_title">删除资产</string>
+    <string name="detail_delete_message">这将永久删除此资产及其所有相关记录。此操作无法撤销。</string>
+    <string name="detail_label_category">类别</string>
+    <string name="detail_label_brand">品牌</string>
+    <string name="detail_label_model">型号</string>
+    <string name="detail_label_serial">序列号</string>
+    <string name="detail_label_location">位置</string>
+    <string name="detail_label_purchased">购买日期</string>
+    <string name="detail_label_price">价格</string>
+    <string name="detail_label_notes">备注</string>
+    <string name="detail_asset_image_desc">资产图片 %d</string>
+    <string name="detail_warranty_expires">到期日 %s</string>
+    <string name="detail_maintenance_scheduled">预定日期：%s</string>
+    <string name="detail_maintenance_completed">完成日期：%s</string>
+    <string name="detail_maintenance_cost">费用：%s</string>
+    <string name="detail_maintenance_pending">待处理</string>
+    <string name="detail_error_no_longer_exists">资产已不存在。</string>
+    <string name="detail_error_archive_failed">归档失败。</string>
+    <string name="detail_error_delete_failed">删除失败。</string>
+    <string name="detail_error_save_warranty_failed">保存保修失败。</string>
+    <string name="detail_error_delete_warranty_failed">删除保修失败。</string>
+    <string name="detail_error_save_log_failed">保存记录失败。</string>
+    <string name="detail_error_delete_log_failed">删除记录失败。</string>
+
+    <!-- Warranty Types -->
+    <string name="warranty_type_manufacturer">原厂保修</string>
+    <string name="warranty_type_extended">延长保修</string>
+    <string name="warranty_type_store_protection">商家保障</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_backup_title">备份与还原</string>
+    <string name="settings_backup_description">导出包含所有资产、规格、保修、保养记录及收据图片的 ZIP 压缩包。</string>
+    <string name="settings_last_export">上次导出：%s</string>
+    <string name="settings_last_restore">上次还原：%s</string>
+    <string name="settings_export_button">导出备份 (ZIP)</string>
+    <string name="settings_exporting">正在导出…</string>
+    <string name="settings_restore_button">从备份还原</string>
+    <string name="settings_restoring">正在还原…</string>
+    <string name="settings_export_success">备份导出成功。</string>
+    <string name="settings_import_success">备份还原成功。</string>
+    <string name="settings_privacy_title">隐私权</string>
+    <string name="settings_privacy_description">本应用 100% 离线运行。您的数据绝不会离开设备。数据库使用存储在 Android Keystore 的密钥进行 AES-256 加密。无任何分析、错误报告或遥测追踪。</string>
+
+    <!-- Form Screen -->
+    <string name="form_title_add">新增资产</string>
+    <string name="form_title_edit">编辑资产</string>
+    <string name="form_section_basic_info">基本信息</string>
+    <string name="form_label_name_required">名称 *</string>
+    <string name="form_label_category">类别</string>
+    <string name="form_placeholder_category">选择类别…</string>
+    <string name="form_label_brand">品牌</string>
+    <string name="form_label_model">型号</string>
+    <string name="form_label_serial">序列号</string>
+    <string name="form_label_location">位置</string>
+    <string name="form_placeholder_location">选择位置…</string>
+    <string name="form_section_warranty_purchase">保修与购买信息</string>
+    <string name="form_label_warranty_expiry_required">保修到期日 *</string>
+    <string name="form_placeholder_date">点击选择日期</string>
+    <string name="form_label_purchase_date">购买日期</string>
+    <string name="form_label_price">价格 ($)</string>
+    <string name="form_label_notes">备注</string>
+    <string name="form_section_specifications">规格信息</string>
+    <string name="form_label_spec_key">属性</string>
+    <string name="form_label_spec_value">数值</string>
+    <string name="form_add_photo">新增照片</string>
+    <string name="form_remove_photo">移除照片</string>
+
+    <!-- Camera Screen -->
+    <string name="camera_title">拍摄照片</string>
+    <string name="camera_capture_desc">拍照</string>
+
+    <!-- Validation & Errors -->
+    <string name="error_item_not_found">找不到资产。</string>
+    <string name="error_save_failed">保存失败。</string>
+    <string name="error_name_required">请输入名称。</string>
+    <string name="error_warranty_expiry_required">请选择保修到期日。</string>
+    <string name="error_invalid_price">请输入有效的价格 (例如：12.99)。</string>
+
+    <!-- Date Formatter -->
+    <string name="date_expired">已过期</string>
+    <string name="date_today">今天</string>
+    <string name="date_one_day">1 天</string>
+    <string name="date_days">%d 天</string>
+
+    <!-- Categories -->
+    <string name="cat_appliances">家电</string>
+    <string name="cat_electronics">电子产品</string>
+    <string name="cat_hvac">空调冷暖气</string>
+    <string name="cat_lighting">照明</string>
+    <string name="cat_plumbing">卫浴水路</string>
+    <string name="cat_furniture">家具</string>
+    <string name="cat_tools">工具</string>
+    <string name="cat_other">其他</string>
+
+    <!-- Locations -->
+    <string name="loc_kitchen">厨房</string>
+    <string name="loc_living_room">客厅</string>
+    <string name="loc_dining_room">餐厅</string>
+    <string name="loc_master_bedroom">主卧室</string>
+    <string name="loc_bedroom">卧室</string>
+    <string name="loc_bathroom">浴室</string>
+    <string name="loc_laundry_room">洗衣房</string>
+    <string name="loc_garage">车库</string>
+    <string name="loc_basement">地下室</string>
+    <string name="loc_attic">阁楼</string>
+    <string name="loc_office_study">办公室 / 书房</string>
+    <string name="loc_backyard">后院</string>
+    <string name="loc_other">其他</string>
+
+    <!-- Spec Templates (Keys) -->
+    <string name="spec_wattage">瓦数</string>
+    <string name="spec_dimensions">尺寸</string>
+    <string name="spec_color">颜色</string>
+    <string name="spec_energy_rating">能源效率分级</string>
+    <string name="spec_screen_size">屏幕尺寸</string>
+    <string name="spec_ram">内存 (RAM)</string>
+    <string name="spec_storage">存储空间</string>
+    <string name="spec_operating_system">操作系统</string>
+    <string name="spec_btu_rating">BTU 等级</string>
+    <string name="spec_filter_size">滤网尺寸</string>
+    <string name="spec_refrigerant_type">冷媒类型</string>
+    <string name="spec_seer_rating">SEER 等级</string>
+    <string name="spec_bulb_type">灯泡类型</string>
+    <string name="spec_color_temperature">色温</string>
+    <string name="spec_lumens">流明</string>
+    <string name="spec_pipe_size">管径尺寸</string>
+    <string name="spec_material">材质</string>
+    <string name="spec_flow_rate">流量 (GPM)</string>
+    <string name="spec_power_source">电源</string>
+    <string name="spec_voltage">电压</string>
+    <string name="spec_blade_bit_size">刀片 / 钻头尺寸</string>
+
+</resources>

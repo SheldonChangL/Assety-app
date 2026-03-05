@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HomeAssetKeeper</string>
+    <string name="app_name">Assety</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
@@ -36,7 +36,7 @@
     <string name="home_quick_action_scan">Scan Warranty</string>
     <string name="home_quick_action_maintenance">Maintenance</string>
     <string name="home_section_recently_added">Recently Added</string>
-    <string name="home_onboarding_title">Welcome to HomeAssetKeeper</string>
+    <string name="home_onboarding_title">Welcome to Assety</string>
     <string name="home_onboarding_subtitle">Keep track of your home appliances, electronics, and more in one place. Start by adding your first asset!</string>
 
     <!-- Item List Screen -->

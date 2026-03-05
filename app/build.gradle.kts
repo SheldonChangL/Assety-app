@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,15 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
 }
+
+// Load signing credentials from local.properties (gitignored).
+// Falls back to empty strings so the build still configures on CI when
+// the release signing block is not reached (e.g. assembleDebug).
+val localProps = Properties().also { props ->
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use(props::load)
+}
+fun localProp(key: String): String = localProps.getProperty(key, "")
 
 android {
     namespace = "chang.sllj.homeassetkeeper"
@@ -15,15 +26,25 @@ android {
         minSdk = 31
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "dagger.hilt.android.testing.HiltTestRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file(localProp("signing.storeFile").ifEmpty { "release.keystore" })
+            storePassword = localProp("signing.storePassword")
+            keyAlias = localProp("signing.keyAlias")
+            keyPassword = localProp("signing.keyPassword")
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
