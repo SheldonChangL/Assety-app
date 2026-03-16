@@ -28,7 +28,8 @@ android {
         // On CI, versionCode is injected via -PVERSION_CODE=<n> (GitHub run number).
         // Locally it defaults to 1 so the build still works without any extra config.
         versionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
-        versionName = "1.0.0"
+        // On CI, VERSION_NAME is injected from the git tag (e.g. v1.2.0 → "1.2.0").
+        versionName = (project.findProperty("VERSION_NAME") as String?)?.removePrefix("v") ?: "1.0.0"
 
         testInstrumentationRunner = "dagger.hilt.android.testing.HiltTestRunner"
     }

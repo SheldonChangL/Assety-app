@@ -4,9 +4,9 @@ name: Publish to Google Play
 # The typical workflow is: develop on `main` → merge PR into `release` → this job fires.
 on:
   push:
-    branches:
-      - release
-  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+    tags:
+      - 'v*'           # Trigger on any tag like v1.0.0, v1.2.3
+  workflow_dispatch:   # Allow manual trigger from GitHub Actions UI
 
 jobs:
   publish:
@@ -81,8 +81,11 @@ jobs:
           VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || '0' }}
         run: |
           OFFSET=${VERSION_CODE_OFFSET:-0}
+          # Use the git tag as versionName (e.g. refs/tags/v1.2.0 → v1.2.0)
+          TAG_NAME="${{ github.ref_name }}"
           ./gradlew bundleRelease \
             -PVERSION_CODE=$(( ${{ github.run_number }} + OFFSET )) \
+            -PVERSION_NAME="${TAG_NAME}" \
             --no-daemon
 
       # ── 8. Upload AAB to Google Play ────────────────────────────────────────
