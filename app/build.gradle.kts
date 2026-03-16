@@ -25,7 +25,9 @@ android {
         applicationId = "chang.sllj.homeassetkeeper"
         minSdk = 31
         targetSdk = 35
-        versionCode = 1
+        // On CI, versionCode is injected via -PVERSION_CODE=<n> (GitHub run number).
+        // Locally it defaults to 1 so the build still works without any extra config.
+        versionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
         versionName = "1.0.0"
 
         testInstrumentationRunner = "dagger.hilt.android.testing.HiltTestRunner"

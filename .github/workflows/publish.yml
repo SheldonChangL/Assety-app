@@ -1,0 +1,76 @@
+name: Publish to Google Play
+
+# Triggers when a commit is pushed to the `release` branch.
+# The typical workflow is: develop on `main` → merge PR into `release` → this job fires.
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  publish:
+    name: Build & publish AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. JDK ─────────────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      # ── 3. Gradle wrapper permissions ──────────────────────────────────────
+      - name: Grant execute permission to gradlew
+        run: chmod +x ./gradlew
+
+      # ── 4. Restore signing keystore from secret ─────────────────────────────
+      # Store the keystore as a base64 secret:
+      #   base64 -i release.keystore | pbcopy   (macOS)
+      # Then add the output as GitHub Secret: KEYSTORE_BASE64
+      - name: Decode release keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release.keystore
+
+      # ── 5. Write local.properties with signing credentials ─────────────────
+      # GitHub Secrets required:
+      #   SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD
+      - name: Write signing credentials to local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
+          echo "signing.storeFile=release.keystore" >> local.properties
+          echo "signing.storePassword=${{ secrets.SIGNING_STORE_PASSWORD }}" >> local.properties
+          echo "signing.keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> local.properties
+          echo "signing.keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}" >> local.properties
+
+      # ── 6. Build signed release AAB ─────────────────────────────────────────
+      # versionCode is set to the GitHub Actions run number so it auto-increments.
+      # If you need a higher starting baseline, change VERSION_CODE_OFFSET in the
+      # repo variable (Settings → Variables → Actions).
+      - name: Build release AAB
+        env:
+          VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || '0' }}
+        run: |
+          OFFSET=${VERSION_CODE_OFFSET:-0}
+          ./gradlew bundleRelease \
+            -PVERSION_CODE=$(( ${{ github.run_number }} + OFFSET )) \
+            --no-daemon
+
+      # ── 7. Upload AAB to Google Play ────────────────────────────────────────
+      # GitHub Secret required:
+      #   SERVICE_ACCOUNT_JSON — full JSON content of your Google Play service account key
+      # Adjust `track` to match your rollout strategy:
+      #   internal → alpha → beta → production
+      - name: Upload to Google Play (internal track)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: chang.sllj.homeassetkeeper
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          inAppUpdatePriority: 2
