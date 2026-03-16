@@ -12,6 +12,8 @@ jobs:
   publish:
     name: Build & publish AAB
     runs-on: ubuntu-latest
+    # Only run if the tagged commit exists on the `release` branch
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.base_ref, 'release')
 
     steps:
       # ── 1. Checkout (full history so we can read commit log) ────────────────
