@@ -12,15 +12,23 @@ jobs:
   publish:
     name: Build & publish AAB
     runs-on: ubuntu-latest
-    # Only run if the tagged commit exists on the `release` branch
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.base_ref, 'release')
-
     steps:
       # ── 1. Checkout (full history so we can read commit log) ────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # ── 1b. Guard: only publish if tag is on the `release` branch ───────────
+      - name: Verify tag is on release branch
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          git fetch origin release
+          if ! git merge-base --is-ancestor HEAD origin/release; then
+            echo "❌ This tag is not on the release branch. Aborting."
+            exit 1
+          fi
+          echo "✅ Tag is on release branch."
 
       # ── 2. JDK ─────────────────────────────────────────────────────────────
       - name: Set up JDK 17
