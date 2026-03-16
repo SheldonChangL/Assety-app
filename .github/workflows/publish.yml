@@ -14,9 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout ────────────────────────────────────────────────────────
+      # ── 1. Checkout (full history so we can read commit log) ────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # ── 2. JDK ─────────────────────────────────────────────────────────────
       - name: Set up JDK 17
@@ -31,15 +33,10 @@ jobs:
         run: chmod +x ./gradlew
 
       # ── 4. Restore signing keystore from secret ─────────────────────────────
-      # Store the keystore as a base64 secret:
-      #   base64 -i release.keystore | pbcopy   (macOS)
-      # Then add the output as GitHub Secret: KEYSTORE_BASE64
       - name: Decode release keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release.keystore
 
       # ── 5. Write local.properties with signing credentials ─────────────────
-      # GitHub Secrets required:
-      #   SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD
       - name: Write signing credentials to local.properties
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
@@ -48,10 +45,37 @@ jobs:
           echo "signing.keyAlias=${{ secrets.SIGNING_KEY_ALIAS }}" >> local.properties
           echo "signing.keyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}" >> local.properties
 
-      # ── 6. Build signed release AAB ─────────────────────────────────────────
-      # versionCode is set to the GitHub Actions run number so it auto-increments.
-      # If you need a higher starting baseline, change VERSION_CODE_OFFSET in the
-      # repo variable (Settings → Variables → Actions).
+      # ── 6. Auto-generate What's New from git log ────────────────────────────
+      # Uses commits since the previous release tag (git tag v*).
+      # Falls back to the last 10 commits if no tag exists yet.
+      # Play Store limit is 500 characters per locale.
+      - name: Generate release notes
+        run: |
+          PREV_TAG=$(git tag --sort=-creatordate | grep -E '^v[0-9]' | head -n1 || true)
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="$PREV_TAG..HEAD"
+          else
+            RANGE="HEAD~10..HEAD"
+          fi
+
+          # Build a bullet list from commit subject lines, skip merge commits and ci: commits
+          NOTES=$(git log "$RANGE" --pretty=format:"• %s" --no-merges \
+            | grep -v "^• ci:" \
+            | head -n 20 \
+            | cut -c1-500)
+
+          if [ -z "$NOTES" ]; then
+            NOTES="• Bug fixes and improvements."
+          fi
+
+          mkdir -p fastlane/metadata/android/en-US/changelogs
+          mkdir -p fastlane/metadata/android/zh-TW/changelogs
+          echo "$NOTES" > fastlane/metadata/android/en-US/changelogs/default.txt
+          echo "$NOTES" > fastlane/metadata/android/zh-TW/changelogs/default.txt
+          echo "--- Release notes ---"
+          cat fastlane/metadata/android/en-US/changelogs/default.txt
+
+      # ── 7. Build signed release AAB ─────────────────────────────────────────
       - name: Build release AAB
         env:
           VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || '0' }}
@@ -61,11 +85,7 @@ jobs:
             -PVERSION_CODE=$(( ${{ github.run_number }} + OFFSET )) \
             --no-daemon
 
-      # ── 7. Upload AAB to Google Play ────────────────────────────────────────
-      # GitHub Secret required:
-      #   SERVICE_ACCOUNT_JSON — full JSON content of your Google Play service account key
-      # Adjust `track` to match your rollout strategy:
-      #   internal → alpha → beta → production
+      # ── 8. Upload AAB to Google Play ────────────────────────────────────────
       - name: Upload to Google Play (internal track)
         uses: r0adkll/upload-google-play@v1
         with:
@@ -75,3 +95,4 @@ jobs:
           track: internal
           status: completed
           inAppUpdatePriority: 2
+          whatsNewDirectory: fastlane/metadata/android
