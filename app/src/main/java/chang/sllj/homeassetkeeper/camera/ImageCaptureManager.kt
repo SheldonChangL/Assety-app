@@ -2,10 +2,13 @@ package chang.sllj.homeassetkeeper.camera
 
 import android.content.Context
 import android.os.Environment
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.MeteringPointFactory
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -16,6 +19,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -41,6 +45,7 @@ class ImageCaptureManager @Inject constructor(
 
     private var imageCapture: ImageCapture? = null
     private var cameraProvider: ProcessCameraProvider? = null
+    private var boundCamera: Camera? = null
 
     /**
      * Initialises the camera preview and image-capture use cases, then binds them
@@ -64,12 +69,16 @@ class ImageCaptureManager @Inject constructor(
             .requireLensFacing(lensFacing)
             .build()
 
-        val preview = Preview.Builder().build().also {
+        val preview = Preview.Builder()
+            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+            .build()
+            .also {
             it.setSurfaceProvider(surfaceProvider)
         }
 
         val capture = ImageCapture.Builder()
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
             .build()
             .also { imageCapture = it }
 
@@ -77,6 +86,7 @@ class ImageCaptureManager @Inject constructor(
         provider.unbindAll()
 
         return provider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, capture)
+            .also { boundCamera = it }
     }
 
     /**
@@ -91,12 +101,12 @@ class ImageCaptureManager @Inject constructor(
      * @throws ImageCaptureException if the capture fails for any hardware or I/O reason.
      * @throws IllegalStateException if [bindCamera] has not been called first.
      */
-    suspend fun captureImage(): String = suspendCancellableCoroutine { continuation ->
+    suspend fun captureImage(isTemporary: Boolean = false): String = suspendCancellableCoroutine { continuation ->
         val capture = requireNotNull(imageCapture) {
             "Camera is not bound. Call bindCamera() before captureImage()."
         }
 
-        val file = createImageFile()
+        val file = createImageFile(isTemporary)
         val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
 
         capture.takePicture(
@@ -129,6 +139,20 @@ class ImageCaptureManager @Inject constructor(
     fun unbindAll() {
         cameraProvider?.unbindAll()
         imageCapture = null
+        boundCamera = null
+    }
+
+    fun tapToFocus(x: Float, y: Float, meteringPointFactory: MeteringPointFactory) {
+        val camera = boundCamera ?: throw IllegalStateException("Camera is not bound.")
+        val focusPoint = meteringPointFactory.createPoint(x, y)
+        val action = FocusMeteringAction.Builder(
+            focusPoint,
+            FocusMeteringAction.FLAG_AF or FocusMeteringAction.FLAG_AE
+        )
+            .setAutoCancelDuration(3, TimeUnit.SECONDS)
+            .build()
+
+        camera.cameraControl.startFocusAndMetering(action)
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -150,11 +174,16 @@ class ImageCaptureManager @Inject constructor(
             )
         }
 
-    private fun createImageFile(): File {
-        val dir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            ?: context.filesDir
+    private fun createImageFile(isTemporary: Boolean): File {
+        val dir = if (isTemporary) {
+            File(context.cacheDir, "scan_captures")
+        } else {
+            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                ?: context.filesDir
+        }
         dir.mkdirs()
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        return File(dir, "IMG_$timestamp.jpg")
+        val prefix = if (isTemporary) "SCAN" else "IMG"
+        return File(dir, "${prefix}_$timestamp.jpg")
     }
 }

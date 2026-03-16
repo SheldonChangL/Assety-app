@@ -117,6 +117,12 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.exifinterface)
+    implementation(libs.google.mlkit.text.recognition)
+    implementation(libs.google.mlkit.text.recognition.chinese)
+    implementation(libs.google.mlkit.text.recognition.devanagari)
+    implementation(libs.google.mlkit.text.recognition.japanese)
+    implementation(libs.google.mlkit.text.recognition.korean)
 
     // Coil — local file image loading for Compose thumbnails (no network URLs used)
     implementation(libs.coil.compose)

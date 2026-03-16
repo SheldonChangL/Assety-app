@@ -25,6 +25,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import chang.sllj.homeassetkeeper.R
+import chang.sllj.homeassetkeeper.camera.CameraCaptureResult
+import chang.sllj.homeassetkeeper.camera.CameraScanMode
 import chang.sllj.homeassetkeeper.ui.camera.CameraScreen
 import chang.sllj.homeassetkeeper.ui.detail.ItemDetailScreen
 import chang.sllj.homeassetkeeper.ui.detail.NAV_ARG_ITEM_ID
@@ -42,12 +44,13 @@ object Screen {
     const val ITEMS    = "items"
     const val DETAIL   = "items/{$NAV_ARG_ITEM_ID}"
     const val FORM     = "form?$NAV_ARG_EDIT_ITEM_ID={$NAV_ARG_EDIT_ITEM_ID}"
-    const val CAMERA   = "camera"
+    const val CAMERA   = "camera?scanMode={scanMode}"
     const val SETTINGS = "settings"
 
     fun detail(itemId: String) = "items/$itemId"
     fun formEdit(editItemId: String) = "form?$NAV_ARG_EDIT_ITEM_ID=$editItemId"
     fun formNew() = "form"
+    fun camera(scanMode: CameraScanMode = CameraScanMode.PHOTO) = "camera?scanMode=${scanMode.routeValue}"
 }
 
 // ── Bottom navigation ─────────────────────────────────────────────────────────
@@ -70,6 +73,8 @@ private val bottomNavItems = listOf(
  */
 object CameraResultKeys {
     const val IMAGE_PATH = "cam_image_path"
+    const val SCANNED_BRAND_CANDIDATES = "cam_scanned_brand_candidates"
+    const val SCANNED_PURCHASE_DATE_CANDIDATES = "cam_scanned_purchase_date_candidates"
 }
 
 @Composable
@@ -185,19 +190,69 @@ fun AppNavHost(
                 }
             }
 
+            val scannedBrandCandidates = savedStateHandle.get<ArrayList<String>>(CameraResultKeys.SCANNED_BRAND_CANDIDATES)
+            LaunchedEffect(scannedBrandCandidates) {
+                scannedBrandCandidates?.let { candidates ->
+                    formViewModel.onBrandScanCandidatesReceived(candidates)
+                    savedStateHandle.remove<ArrayList<String>>(CameraResultKeys.SCANNED_BRAND_CANDIDATES)
+                }
+            }
+
+            val scannedPurchaseDateCandidates = savedStateHandle.get<LongArray>(CameraResultKeys.SCANNED_PURCHASE_DATE_CANDIDATES)
+            LaunchedEffect(scannedPurchaseDateCandidates) {
+                scannedPurchaseDateCandidates?.let { candidates ->
+                    formViewModel.onPurchaseDateScanCandidatesReceived(candidates.toList())
+                    savedStateHandle.remove<LongArray>(CameraResultKeys.SCANNED_PURCHASE_DATE_CANDIDATES)
+                }
+            }
+
             FormScreen(
-                onNavigateBack     = { navController.popBackStack() },
-                onNavigateToCamera = { navController.navigate(Screen.CAMERA) },
-                viewModel          = formViewModel
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCamera = { scanMode ->
+                    navController.navigate(Screen.camera(scanMode))
+                },
+                viewModel = formViewModel
             )
         }
 
         // ── Camera ────────────────────────────────────────────────────────────
-        composable(Screen.CAMERA) {
+        composable(
+            route = Screen.CAMERA,
+            arguments = listOf(
+                navArgument("scanMode") {
+                    type = NavType.StringType
+                    defaultValue = CameraScanMode.PHOTO.routeValue
+                }
+            )
+        ) { backStackEntry ->
+            val scanMode = CameraScanMode.fromRouteValue(
+                backStackEntry.arguments?.getString("scanMode")
+            )
             CameraScreen(
-                onImageCaptured = { imagePath ->
-                    navController.previousBackStackEntry?.savedStateHandle
-                        ?.set(CameraResultKeys.IMAGE_PATH, imagePath)
+                scanMode = scanMode,
+                onCaptureResult = { result ->
+                    when (result) {
+                        is CameraCaptureResult.Photo -> {
+                            navController.previousBackStackEntry?.savedStateHandle
+                                ?.set(CameraResultKeys.IMAGE_PATH, result.imagePath)
+                        }
+
+                        is CameraCaptureResult.BrandScan -> {
+                            navController.previousBackStackEntry?.savedStateHandle
+                                ?.set(
+                                    CameraResultKeys.SCANNED_BRAND_CANDIDATES,
+                                    ArrayList(result.candidates)
+                                )
+                        }
+
+                        is CameraCaptureResult.PurchaseDateScan -> {
+                            navController.previousBackStackEntry?.savedStateHandle
+                                ?.set(
+                                    CameraResultKeys.SCANNED_PURCHASE_DATE_CANDIDATES,
+                                    result.candidates.toLongArray()
+                                )
+                        }
+                    }
                     navController.popBackStack()
                 },
                 onNavigateBack = { navController.popBackStack() }

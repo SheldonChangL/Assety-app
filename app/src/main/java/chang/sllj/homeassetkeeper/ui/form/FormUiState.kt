@@ -37,6 +37,8 @@ data class FormUiState(
 
     /** Up to three absolute JPEG paths captured by the camera. */
     val imagePaths: List<String> = emptyList(),
+    val pendingBrandCandidates: List<String> = emptyList(),
+    val pendingPurchaseDateCandidates: List<Long> = emptyList(),
 
     // ── Warranty (required) ───────────────────────────────────────────────────
     /** Epoch-ms of the warranty expiry date. Required — validated before save. */

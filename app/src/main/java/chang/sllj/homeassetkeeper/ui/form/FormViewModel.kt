@@ -159,6 +159,50 @@ class FormViewModel @Inject constructor(
         }
     }
 
+    fun onBrandScanCandidatesReceived(candidates: List<String>) {
+        _uiState.update {
+            it.copy(
+                pendingBrandCandidates = candidates.distinct().take(3),
+                pendingPurchaseDateCandidates = emptyList()
+            )
+        }
+    }
+
+    fun confirmBrandCandidate(brand: String) {
+        _uiState.update {
+            it.copy(
+                brand = brand.trim(),
+                pendingBrandCandidates = emptyList()
+            )
+        }
+    }
+
+    fun dismissBrandScanCandidates() {
+        _uiState.update { it.copy(pendingBrandCandidates = emptyList()) }
+    }
+
+    fun onPurchaseDateScanCandidatesReceived(candidates: List<Long>) {
+        _uiState.update {
+            it.copy(
+                pendingPurchaseDateCandidates = candidates.distinct().take(3),
+                pendingBrandCandidates = emptyList()
+            )
+        }
+    }
+
+    fun confirmPurchaseDateCandidate(dateMs: Long) {
+        _uiState.update {
+            it.copy(
+                purchaseDateMs = dateMs,
+                pendingPurchaseDateCandidates = emptyList()
+            )
+        }
+    }
+
+    fun dismissPurchaseDateScanCandidates() {
+        _uiState.update { it.copy(pendingPurchaseDateCandidates = emptyList()) }
+    }
+
     // ── Specification management ───────────────────────────────────────────────
 
     fun addSpecification() {

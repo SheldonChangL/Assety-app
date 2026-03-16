@@ -28,7 +28,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -41,6 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -72,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import chang.sllj.homeassetkeeper.R
+import chang.sllj.homeassetkeeper.camera.CameraScanMode
 import chang.sllj.homeassetkeeper.ui.util.toFormattedDate
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -84,7 +88,7 @@ import java.io.File
 @Composable
 fun FormScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToCamera: () -> Unit,
+    onNavigateToCamera: (CameraScanMode) -> Unit,
     viewModel: FormViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -94,11 +98,17 @@ fun FormScreen(
     var showWarrantyExpiryPicker by rememberSaveable { mutableStateOf(false) }
     var categoryExpanded by remember { mutableStateOf(false) }
     var locationExpanded by remember { mutableStateOf(false) }
+    var pendingCameraMode by remember { mutableStateOf(CameraScanMode.PHOTO) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) onNavigateToCamera()
+        if (granted) onNavigateToCamera(pendingCameraMode)
+    }
+
+    val launchCamera = { scanMode: CameraScanMode ->
+        pendingCameraMode = scanMode
+        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
     }
 
     LaunchedEffect(uiState.savedItemId) {
@@ -155,7 +165,7 @@ fun FormScreen(
                     imagePaths = uiState.imagePaths,
                     onRemove = { index -> viewModel.onImageRemoved(index) },
                     onAddPhoto = {
-                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                        launchCamera(CameraScanMode.PHOTO)
                     }
                 )
             }
@@ -213,11 +223,23 @@ fun FormScreen(
             }
 
             item {
-                FormTextField(
+                OutlinedTextField(
                     value = uiState.brand,
                     onValueChange = viewModel::onBrandChange,
-                    label = stringResource(R.string.form_label_brand),
-                    imeAction = ImeAction.Next
+                    label = { Text(stringResource(R.string.form_label_brand)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    trailingIcon = {
+                        ScanFieldButton(
+                            contentDescription = stringResource(R.string.form_scan_brand),
+                            onClick = { launchCamera(CameraScanMode.BRAND) }
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -312,8 +334,14 @@ fun FormScreen(
                         readOnly = true,
                         label = { Text(stringResource(R.string.form_label_purchase_date)) },
                         trailingIcon = {
-                            IconButton(onClick = { showPurchaseDatePicker = true }) {
-                                Icon(Icons.Filled.DateRange, null)
+                            Row {
+                                ScanFieldButton(
+                                    contentDescription = stringResource(R.string.form_scan_purchase_date),
+                                    onClick = { launchCamera(CameraScanMode.PURCHASE_DATE) }
+                                )
+                                IconButton(onClick = { showPurchaseDatePicker = true }) {
+                                    Icon(Icons.Filled.DateRange, null)
+                                }
                             }
                         },
                         modifier = Modifier.weight(1f)
@@ -431,6 +459,95 @@ fun FormScreen(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
+
+    if (uiState.pendingBrandCandidates.isNotEmpty()) {
+        ScanCandidateDialog(
+            title = stringResource(R.string.form_confirm_brand_title),
+            subtitle = stringResource(R.string.form_confirm_brand_message),
+            dismissLabel = stringResource(R.string.form_scan_edit_manually),
+            onDismiss = viewModel::dismissBrandScanCandidates
+        ) {
+            uiState.pendingBrandCandidates.forEach { candidate ->
+                CandidateButton(
+                    label = candidate,
+                    onClick = { viewModel.confirmBrandCandidate(candidate) }
+                )
+            }
+        }
+    }
+
+    if (uiState.pendingPurchaseDateCandidates.isNotEmpty()) {
+        ScanCandidateDialog(
+            title = stringResource(R.string.form_confirm_purchase_date_title),
+            subtitle = stringResource(R.string.form_confirm_purchase_date_message),
+            dismissLabel = stringResource(R.string.form_scan_edit_manually),
+            onDismiss = viewModel::dismissPurchaseDateScanCandidates
+        ) {
+            uiState.pendingPurchaseDateCandidates.forEach { candidate ->
+                CandidateButton(
+                    label = candidate.toFormattedDate(),
+                    onClick = { viewModel.confirmPurchaseDateCandidate(candidate) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScanFieldButton(
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = Icons.Filled.DocumentScanner,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+private fun ScanCandidateDialog(
+    title: String,
+    subtitle: String,
+    dismissLabel: String,
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                content()
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(dismissLabel)
+            }
+        }
+    )
+}
+
+@Composable
+private fun CandidateButton(
+    label: String,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(label)
     }
 }
 

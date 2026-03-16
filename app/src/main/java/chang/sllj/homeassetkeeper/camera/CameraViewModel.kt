@@ -1,6 +1,7 @@
 package chang.sllj.homeassetkeeper.camera
 
 import androidx.camera.core.Preview
+import androidx.camera.core.MeteringPointFactory
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,7 +22,7 @@ sealed class CameraEvent {
      * The screen navigates back and writes [imagePath] to the calling form's
      * [androidx.navigation.NavBackStackEntry.savedStateHandle].
      */
-    data class CaptureSuccess(val imagePath: String) : CameraEvent()
+    data class CaptureSuccess(val result: CameraCaptureResult) : CameraEvent()
 
     data class ShowError(val message: String) : CameraEvent()
 }
@@ -39,7 +40,8 @@ sealed class CameraEvent {
  */
 @HiltViewModel
 class CameraViewModel @Inject constructor(
-    private val imageCaptureManager: ImageCaptureManager
+    private val imageCaptureManager: ImageCaptureManager,
+    private val guidedScanProcessor: GuidedScanProcessor
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
@@ -70,21 +72,62 @@ class CameraViewModel @Inject constructor(
      * Captures one image and emits [CameraEvent.CaptureSuccess] with the saved path.
      * Guards against double-taps: subsequent calls while a capture is in-flight are ignored.
      */
-    fun captureImage() {
+    fun captureImage(scanMode: CameraScanMode, cropRect: NormalizedRect?) {
         if (_uiState.value.isCapturing) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isCapturing = true, error = null) }
 
-            val imagePath = runCatching { imageCaptureManager.captureImage() }
+            val imagePath = runCatching {
+                imageCaptureManager.captureImage(isTemporary = scanMode != CameraScanMode.PHOTO)
+            }
                 .getOrElse { e ->
                     _uiState.update { it.copy(isCapturing = false, error = "Capture failed: ${e.message}") }
                     _events.send(CameraEvent.ShowError("Capture failed: ${e.message}"))
                     return@launch
                 }
 
-            _uiState.update { it.copy(isCapturing = false, lastCapturedImagePath = imagePath) }
-            _events.send(CameraEvent.CaptureSuccess(imagePath))
+            val result = runCatching {
+                when (scanMode) {
+                    CameraScanMode.PHOTO -> CameraCaptureResult.Photo(imagePath)
+                    else -> guidedScanProcessor.process(
+                        imagePath = imagePath,
+                        scanMode = scanMode,
+                        cropRect = requireNotNull(cropRect) {
+                            "Guided scan modes require a crop rect."
+                        }
+                    )
+                }
+            }.onFailure {
+                if (scanMode != CameraScanMode.PHOTO) {
+                    runCatching { java.io.File(imagePath).delete() }
+                }
+            }.getOrElse { e ->
+                _uiState.update { it.copy(isCapturing = false, error = "Scan failed: ${e.message}") }
+                _events.send(CameraEvent.ShowError("Scan failed: ${e.message}"))
+                return@launch
+            }
+
+            _uiState.update {
+                it.copy(
+                    isCapturing = false,
+                    lastCapturedImagePath = (result as? CameraCaptureResult.Photo)?.imagePath
+                )
+            }
+            if (scanMode != CameraScanMode.PHOTO) {
+                runCatching { java.io.File(imagePath).delete() }
+            }
+            _events.send(CameraEvent.CaptureSuccess(result))
+        }
+    }
+
+    fun tapToFocus(x: Float, y: Float, meteringPointFactory: MeteringPointFactory) {
+        viewModelScope.launch {
+            runCatching {
+                imageCaptureManager.tapToFocus(x, y, meteringPointFactory)
+            }.onFailure { e ->
+                _events.send(CameraEvent.ShowError("Focus failed: ${e.message}"))
+            }
         }
     }
 

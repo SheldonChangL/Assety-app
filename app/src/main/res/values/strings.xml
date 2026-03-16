@@ -120,10 +120,26 @@
     <string name="form_label_spec_value">Value</string>
     <string name="form_add_photo">Add Photo</string>
     <string name="form_remove_photo">Remove photo</string>
+    <string name="form_scan_brand">Scan brand</string>
+    <string name="form_scan_purchase_date">Scan purchase date</string>
+    <string name="form_confirm_brand_title">Confirm brand</string>
+    <string name="form_confirm_brand_message">Choose the closest brand result, or keep editing manually.</string>
+    <string name="form_confirm_purchase_date_title">Confirm purchase date</string>
+    <string name="form_confirm_purchase_date_message">Choose the correct date from the OCR candidates.</string>
+    <string name="form_scan_edit_manually">Edit manually</string>
 
     <!-- Camera Screen -->
     <string name="camera_title">Capture Photo</string>
     <string name="camera_capture_desc">Capture</string>
+    <string name="camera_title_scan_brand">Scan Brand</string>
+    <string name="camera_title_scan_purchase_date">Scan Purchase Date</string>
+    <string name="camera_processing_scan">Scanning…</string>
+    <string name="camera_scan_brand_title">Scan the brand area</string>
+    <string name="camera_scan_brand_hint">Place the brand text or nameplate inside the frame.</string>
+    <string name="camera_scan_brand_subhint">Text works better than logo-only shots. If only a logo is visible, verify the suggestion manually.</string>
+    <string name="camera_scan_purchase_date_title">Scan the purchase date</string>
+    <string name="camera_scan_purchase_date_hint">Place the receipt or warranty date line inside the frame.</string>
+    <string name="camera_scan_purchase_date_subhint">Avoid totals, item names, and other lines outside the frame.</string>
 
     <!-- Validation & Errors -->
     <string name="error_item_not_found">Item not found.</string>
