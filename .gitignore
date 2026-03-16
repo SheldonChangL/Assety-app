@@ -14,6 +14,7 @@ local.properties
 # Release signing artifacts — NEVER commit to VCS
 release.keystore
 keystore_secrets.txt
+assety-*.json
 
 # Compiled app artifacts — upload via Play Console, not VCS
 *.aab

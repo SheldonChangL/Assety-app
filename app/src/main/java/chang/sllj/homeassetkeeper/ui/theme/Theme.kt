@@ -112,7 +112,7 @@ fun HomeAssetKeeperTheme(
         else -> LightColorScheme
     }
 
-    // enableEdgeToEdge() in MainActivity sets the status bar to transparent.
+    // WindowCompat.enableEdgeToEdge(window) in MainActivity makes the system bars transparent.
     // We only need to set the icon appearance (light vs. dark icons) here.
     val view = LocalView.current
     if (!view.isInEditMode) {
